@@ -35,7 +35,7 @@ func JWTMiddleware(c *gin.Context) {
 
 	tokenString := c.GetHeader("Authorization")
 	if tokenString == "" {
-		c.JSON(401, utils.ResponseData{
+		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
 			Message:    "Authorization header not provided",
 			Error:      "Error getting authorization header",
@@ -46,7 +46,7 @@ func JWTMiddleware(c *gin.Context) {
 
 	jwtData, err := VerifyJWTToken(tokenString)
 	if err != "" {
-		c.JSON(401, utils.ResponseData{
+		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
 			Message:    err,
 			Error:      "Error verifying token",

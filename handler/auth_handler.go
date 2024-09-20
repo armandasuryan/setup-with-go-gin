@@ -24,7 +24,7 @@ func (h *AuthHandlerMethod) LoginHdlr(c *gin.Context) {
 	var payloadLogin model.Login
 	if err := c.ShouldBindJSON(&payloadLogin); err != nil {
 		h.log.Println("Failed to parse payload data login")
-		c.JSON(400, utils.ResponseData{
+		c.JSON(400, utils.ErrorResponse{
 			StatusCode: 400,
 			Message:    "Error parsing payload data login",
 			Error:      err.Error(),
@@ -36,7 +36,7 @@ func (h *AuthHandlerMethod) LoginHdlr(c *gin.Context) {
 	errorFields, validationError := utils.ValidateData(&payloadLogin)
 	if validationError != nil {
 		h.log.Println("Validation error in LoginHdlr:", validationError)
-		c.JSON(400, utils.ResponseValidator{
+		c.JSON(400, utils.ValidatorResponse{
 			StatusCode: 400,
 			Message:    "Fill The Required Fields",
 			Error:      errorFields,
@@ -47,7 +47,7 @@ func (h *AuthHandlerMethod) LoginHdlr(c *gin.Context) {
 	loginData, errMsg := h.service.LoginSvc(payloadLogin)
 	if errMsg != "" {
 		h.log.Println("Failed to get data in LoginHdlr")
-		c.JSON(401, utils.ResponseData{
+		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
 			Message:    errMsg,
 			Error:      "Error login",
@@ -55,7 +55,7 @@ func (h *AuthHandlerMethod) LoginHdlr(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, utils.ResponseData{
+	c.JSON(200, utils.StandardResponse{
 		StatusCode: 200,
 		Message:    "Successfully Login!",
 		Data:       loginData,
@@ -69,7 +69,7 @@ func (h *AuthHandlerMethod) VerifyOTPHdlr(c *gin.Context) {
 	var payloadVerify model.VerifyOTP
 	if err := c.ShouldBindJSON(&payloadVerify); err != nil {
 		h.log.Println("Failed to parse payload data verify OTP")
-		c.JSON(400, utils.ResponseData{
+		c.JSON(400, utils.ErrorResponse{
 			StatusCode: 400,
 			Message:    "Error parsing payload data verify OTP",
 			Error:      err.Error(),
@@ -81,7 +81,7 @@ func (h *AuthHandlerMethod) VerifyOTPHdlr(c *gin.Context) {
 	errorFields, validationError := utils.ValidateData(&payloadVerify)
 	if validationError != nil {
 		h.log.Println("Validation error in VerifyOTPHdlr:", validationError)
-		c.JSON(400, utils.ResponseValidator{
+		c.JSON(400, utils.ValidatorResponse{
 			StatusCode: 400,
 			Message:    "Fill The Required Fields",
 			Error:      errorFields,
@@ -92,7 +92,7 @@ func (h *AuthHandlerMethod) VerifyOTPHdlr(c *gin.Context) {
 	verifyOTP, err := h.service.VerifyOTPSvc(payloadVerify)
 	if err != "" {
 		h.log.Println("Failed to verify data in VerifyOTPHdlr")
-		c.JSON(401, utils.ResponseData{
+		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
 			Message:    err,
 			Error:      "Error verifying OTP",
@@ -100,7 +100,7 @@ func (h *AuthHandlerMethod) VerifyOTPHdlr(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, utils.ResponseData{
+	c.JSON(200, utils.StandardResponse{
 		StatusCode: 200,
 		Message:    "Successfully verified OTP",
 		Data:       verifyOTP,
@@ -113,7 +113,7 @@ func (h *AuthHandlerMethod) GetUserProfileHdlr(c *gin.Context) {
 	getUserProfile, err := h.service.GetUserProfileSvc(c)
 	if err != nil {
 		h.log.Println("Failed to get user profile")
-		c.JSON(401, utils.ResponseData{
+		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
 			Message:    "Failed to get user profile",
 			Error:      err.Error(),
@@ -121,9 +121,12 @@ func (h *AuthHandlerMethod) GetUserProfileHdlr(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, utils.ResponseData{
+	// example using pagination
+	data, meta := utils.GetPaginated(c, 1, 1, getUserProfile)
+	c.JSON(200, utils.PaginationResponse{
 		StatusCode: 200,
 		Message:    "Successfully retrieved user profile",
-		Data:       getUserProfile,
+		Data:       data,
+		Meta:       utils.Meta{Pagination: meta},
 	})
 }
