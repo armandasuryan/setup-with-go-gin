@@ -28,6 +28,12 @@ func (r *AuthRepoMethod) GetDataUserRepo(username string) (model.ResponseLogin, 
 		Joins(`LEFT JOIN role ON role.id = emp.id_role`).
 		Where("users.deleted_at IS NULL and users.username = ?", username).
 		Find(&user).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.log.Error("record not found in get data user profile")
+			return model.ResponseLogin{}, errors.New("record not found")
+		}
+
 		r.log.Error("Failed to get detail data user :", err)
 		return model.ResponseLogin{}, err
 	}
@@ -70,6 +76,13 @@ func (r *AuthRepoMethod) GetUserProfile(username string) (model.UserProfile, err
 		Where(`users.deleted_at IS NULL and users.username = ?`, username).
 		Find(&user).Error; err != nil {
 		r.log.Error("Failed to get user profile : ", err)
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.log.Error("record not found in get user profile")
+			return model.UserProfile{}, errors.New("record not found")
+		}
+
+		r.log.Error("Failed get detail user profile : ", err)
 		return model.UserProfile{}, nil
 	}
 

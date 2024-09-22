@@ -112,6 +112,17 @@ func (h *AuthHandlerMethod) GetUserProfileHdlr(c *gin.Context) {
 
 	getUserProfile, err := h.service.GetUserProfileSvc(c)
 	if err != nil {
+
+		if err.Error() == "record not found" {
+			h.log.Println("record not found in GetUserProfileHdlr")
+			c.JSON(404, utils.ErrorResponse{
+				StatusCode: 404,
+				Message:    "record not found",
+				Error:      err.Error(),
+			})
+			return
+		}
+
 		h.log.Println("Failed to get user profile")
 		c.JSON(401, utils.ErrorResponse{
 			StatusCode: 401,
